@@ -93,6 +93,8 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
 
     bundles = []
     bundle_names = []
+
+    # TODO: use max_pages = r['TotalRecordCount'] / 36 if not max_pages
     for i in range(1, max_pages):
         payload = { "categoryId": cat_id,
                     "url":"/shop/browse/pantry",
@@ -108,7 +110,6 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
                     }
         
         r = _post_request('browse/category', payload=payload)
-        
         if r == []:
             break
         
@@ -119,4 +120,4 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
 
 if __name__ == '__main__':
     import pprint
-    pprint.pprint(get_products('whisky',5))
+    get_products('pantry',2)
