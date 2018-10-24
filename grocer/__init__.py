@@ -1,1 +1,1 @@
-import woolw_mining
+from . import woolw_mining
