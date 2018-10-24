@@ -1,0 +1,6 @@
+*secret*
+.DS_Store
+*.pyc
+dist/
+
+*.egg-info
