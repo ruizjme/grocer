@@ -60,6 +60,9 @@ def get_category_id(category):
     """
     categories = get_categories()
 
+    if category not in [cat['UrlFriendlyName'] for cat in categories]:
+        raise ValueError("Bad category '{}'.".format(category))
+
     for cat in categories:
         if cat['UrlFriendlyName'] == category:
             return cat['NodeId']
@@ -74,8 +77,6 @@ def list_categories():
 def get_products(category, max_pages=200):
     """Get product data from category
     """
-    if category not in list_categories():
-        raise ValueError("Bad category '{}'.".format(category))
     cat_id = get_category_id(category)
 
     bundles = []
@@ -93,25 +94,17 @@ def get_products(category, max_pages=200):
                     # "isMobile":'false',
                     # "filters":[]
                     }
-
-
-
-        r = _get_request('browse/category', payload=payload)
-#        r = requests.post(api_base+'browse/category', data=payload, )
-#
-#        try:
-#            r = json.loads(r.text)
-#        except:
-#            print(r, r.text)
-#            raise ValueError("{} - {}. Could not retrieve JSON.")
+        
+        r = _post_request('browse/category', payload=payload)
+        
         if r == []:
             break
+        
         bundles += [b for b in r['Bundles'] if b['Name'] not in bundle_names]
         bundle_names += [b['Name'] for b in r['Bundles']]
-        print(i)
+    
     return bundles
 
 if __name__ == '__main__':
     import pprint
-    l = list_categories()
-    print(len(l))
+    pprint.pprint(len(get_products('whisky',5)))
