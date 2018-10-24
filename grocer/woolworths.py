@@ -2,8 +2,6 @@
 
 import json
 import requests
-import random
-import pprint
 import re
 
 """
@@ -30,11 +28,18 @@ endpoints = [   'products/', # append comma-separated Stockcodes
                 'product/detail/', # append Stockcode
                 ]
 
-api_base = 'https://www.woolworths.com.au/apis/ui/'
-
 def _get_request(endpoint, payload={}, headers={}):
     api_base = 'https://www.woolworths.com.au/apis/ui/'
     r = requests.get(api_base+endpoint, data=payload, headers=headers)
+    try:
+        data = json.loads(r.text)
+    except TypeError:
+        raise TypeError("{} - {}".format(r, r.text))
+    return data
+
+def _post_request(endpoint, payload={}, headers={}):
+    api_base = 'https://www.woolworths.com.au/apis/ui/'
+    r = requests.post(api_base+endpoint, data=payload, headers=headers)
     try:
         data = json.loads(r.text)
     except TypeError:
@@ -66,7 +71,7 @@ def list_categories():
     categories = get_categories()
     return list(set([cat['UrlFriendlyName'] for cat in categories]))
 
-def get_products(category):
+def get_products(category, max_pages=200):
     """Get product data from category
     """
     if category not in list_categories():
@@ -75,7 +80,7 @@ def get_products(category):
 
     bundles = []
     bundle_names = []
-    for i in range(1, 200):
+    for i in range(1, max_pages):
         payload = { "categoryId": cat_id,
                     "url":"/shop/browse/pantry",
                     "formatObject":'{\"name\":\"%s\"}' % category,
@@ -89,13 +94,16 @@ def get_products(category):
                     # "filters":[]
                     }
 
-        r = requests.post(api_base+'browse/category', data=payload, )
 
-        try:
-            r = json.loads(r.text)
-        except:
-            print(r, r.text)
-            raise ValueError("{} - {}. Could not retrieve JSON.")
+
+        r = _get_request('browse/category', payload=payload)
+#        r = requests.post(api_base+'browse/category', data=payload, )
+#
+#        try:
+#            r = json.loads(r.text)
+#        except:
+#            print(r, r.text)
+#            raise ValueError("{} - {}. Could not retrieve JSON.")
         if r == []:
             break
         bundles += [b for b in r['Bundles'] if b['Name'] not in bundle_names]
@@ -104,7 +112,6 @@ def get_products(category):
     return bundles
 
 if __name__ == '__main__':
-    pprint.pprint(len(get_products('whisky')))
+    import pprint
     l = list_categories()
-    pprint.pprint(l)
     print(len(l))
