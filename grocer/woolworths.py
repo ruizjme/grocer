@@ -55,28 +55,40 @@ def get_categories():
         cat.pop('Children', None)
     return categories
 
-def get_category_id(category):
-    """Return the category id for a given category name
-    """
-    categories = get_categories()
-
-    if category not in [cat['UrlFriendlyName'] for cat in categories]:
-        raise ValueError("Bad category '{}'.".format(category))
-
-    for cat in categories:
-        if cat['UrlFriendlyName'] == category:
-            return cat['NodeId']
-    return None
-
 def list_categories():
     """List category names
     """
     categories = get_categories()
     return list(set([cat['UrlFriendlyName'] for cat in categories]))
 
-def get_products(category, max_pages=200):
+def get_category_id(category):
+    """Return the category id for a given category name
+    """
+    categories = get_categories()
+
+    assert category in [cat['UrlFriendlyName'] for cat in categories]
+
+    for cat in categories:
+        if cat['UrlFriendlyName'] == category:
+            return cat['NodeId']
+    return None
+
+def get_products(category, max_pages=200, sort_type="CUPAsc", 
+                    filters=[]):
     """Get product data from category
     """
+
+    sort_types = [  "TraderRelevance",
+                    "AvailableDate",
+                    "PriceAsc",
+                    "PriceDesc",
+                    "Name",
+                    "NameDesc",
+                    "CUPAsc",
+                    "CUPDesc",
+                    "BrowseRelevance",  ]
+    assert sort_type in sort_types
+
     cat_id = get_category_id(category)
 
     bundles = []
@@ -88,11 +100,11 @@ def get_products(category, max_pages=200):
                     "pageNumber":i,
                     "pageSize":36,
                     # "location":"/shop/browse/pantry",
-                    # "sortType":"TraderRelevance",
                     # "isSpecial":'false',
                     # "isBundle":'false',
                     # "isMobile":'false',
-                    # "filters":[]
+                    "sortType":sort_type,
+                    "filters":filters
                     }
         
         r = _post_request('browse/category', payload=payload)
@@ -107,4 +119,4 @@ def get_products(category, max_pages=200):
 
 if __name__ == '__main__':
     import pprint
-    pprint.pprint(len(get_products('whisky',5)))
+    pprint.pprint(get_products('whisky',5))
