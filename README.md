@@ -7,5 +7,6 @@ Get data from Woolworths
 
 - `requests`
 
-# License
-MIT
+Work in progress
+
+
