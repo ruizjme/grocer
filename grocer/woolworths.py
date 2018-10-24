@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Maps (some of) the Woolworths REST API endpoints.
+"""
+
 import json
 import requests
-import re
 
 """
 Interesting Bundle keys (r['Bundles'][0]['Products'][0]):
@@ -88,6 +91,7 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
                     "CUPDesc",
                     "BrowseRelevance",  ]
     assert sort_type in sort_types
+    assert max_pages > 1
 
     cat_id = get_category_id(category)
 
@@ -120,4 +124,4 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
 
 if __name__ == '__main__':
     import pprint
-    get_products('pantry',2)
+    pprint.pprint(get_products('pantry',2))
