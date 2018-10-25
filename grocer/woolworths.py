@@ -29,11 +29,16 @@ endpoints = [   'products/', # append comma-separated Stockcodes
                 'browse/category',
                 'PiesCategoriesWithSpecials', # to get categoryId list
                 'product/detail/', # append Stockcode
+                'Search/suggestion?Key=peters', # GET
+                'Search/products' # POST with payload
                 ]
 
-def _get_request(endpoint, payload={}, headers={}):
+def _get_request(endpoint, params={}, payload={}, headers={}):
     api_base = 'https://www.woolworths.com.au/apis/ui/'
-    r = requests.get(api_base+endpoint, data=payload, headers=headers)
+    qsp = '?'+'&'.join(["{}={}".format(k,v.replace(' ','+'))
+                            for k,v in params.items()]) if params else ''
+    r = requests.get(api_base+endpoint+qsp, data=payload, headers=headers)
+
     try:
         data = json.loads(r.text)
     except TypeError:
@@ -76,7 +81,7 @@ def get_category_id(category):
             return cat['NodeId']
     return None
 
-def get_products(category, max_pages=200, sort_type="CUPAsc", 
+def get_products(category, max_pages=200, sort_type="CUPAsc",
                     filters=[]):
     """Get product data from category
     """
@@ -112,15 +117,34 @@ def get_products(category, max_pages=200, sort_type="CUPAsc",
                     "sortType":sort_type,
                     "filters":filters
                     }
-        
+
         r = _post_request('browse/category', payload=payload)
         if r == []:
             break
-        
+
         bundles += [b for b in r['Bundles'] if b['Name'] not in bundle_names]
         bundle_names += [b['Name'] for b in r['Bundles']]
-    
+
     return bundles
+
+def get_search_suggestion(query):
+    """Search/suggestion?Key=peters"""
+    r = _get_request('Search/suggestion', params={'Key':query})
+    return r
+
+def get_search(query):
+    """Get a list of bundles as a result of a search query"""
+    payload = { "SearchTerm": query,
+                "PageNumber":1,
+                "PageSize":24,
+                # "IsSpecial":false,
+                # "Location":"/shop/search/products?searchTerm=peter%20drumstick",
+                "Passes":[6,11,12,15,26],
+                "SortType":"TraderRelevance",
+                "Filters":[],
+                }
+    r = _post_request('Search/products', payload=payload)
+    return r
 
 if __name__ == '__main__':
     import pprint
